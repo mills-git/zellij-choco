@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>zellij.portable</id>
+    <version>0.46.0</version>
+    <packageSourceUrl>https://github.com/mills-git/zellij-choco</packageSourceUrl>
+    <owners>mills-git</owners>
+    <title>Zellij (Portable)</title>
+    <authors>Aram Drevekenin, Zellij contributors</authors>
+    <projectUrl>https://zellij.dev</projectUrl>
+    <iconUrl>https://cdn.jsdelivr.net/gh/zellij-org/zellij@main/assets/logo.png</iconUrl>
+    <copyright>Copyright (c) Zellij contributors</copyright>
+    <licenseUrl>https://github.com/zellij-org/zellij/blob/main/LICENSE.md</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/zellij-org/zellij</projectSourceUrl>
+    <docsUrl>https://zellij.dev/documentation</docsUrl>
+    <bugTrackerUrl>https://github.com/zellij-org/zellij/issues</bugTrackerUrl>
+    <tags>zellij terminal multiplexer workspace tmux cli rust foss</tags>
+    <summary>A terminal workspace with batteries included.</summary>
+    <description><![CDATA[Zellij is a workspace aimed at developers, ops-oriented people and anyone who loves the terminal. Similar programs are sometimes called "terminal multiplexers".
+
+Zellij is designed around the philosophy that one must not sacrifice simplicity for power, taking pride in its great experience out of the box as well as the advanced features it places at its users' fingertips.
+
+## Features
+- Panes, tabs and floating panes with a discoverable, on-screen keybinding UI
+- Layouts that describe your workspace declaratively
+- A WebAssembly plugin system
+- Session persistence and resurrection
+- A built-in web client
+
+## Notes
+- This is the portable package: binaries are extracted into the Chocolatey lib folder and shimmed onto your PATH. No installer is run.
+- 64-bit Windows only.
+]]></description>
+    <releaseNotes>https://github.com/zellij-org/zellij/releases/tag/v0.46.0</releaseNotes>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

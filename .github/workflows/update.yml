@@ -1,0 +1,80 @@
+name: Update Zellij packages
+
+on:
+  schedule:
+    - cron: '17 6 * * *'   # daily, 06:17 UTC
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Zellij release tag (blank = latest)'
+        required: false
+      force:
+        description: 'Repack even if the version is unchanged'
+        type: boolean
+        default: false
+      push:
+        description: 'Push to the Chocolatey community repository'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update and pack
+        id: update
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $params = @{}
+          if ('${{ inputs.tag }}')            { $params.Tag   = '${{ inputs.tag }}' }
+          if ('${{ inputs.force }}' -eq 'true') { $params.Force = $true }
+          ./update.ps1 @params
+
+      - name: Test install
+        if: steps.update.outputs.changed == 'true'
+        shell: pwsh
+        run: |
+          choco install zellij --source "$PWD\out" --version ${{ steps.update.outputs.version }} -y --no-progress
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          zellij --version
+          choco uninstall zellij zellij.portable -y --no-progress
+
+      - name: Commit updated sources
+        if: steps.update.outputs.changed == 'true'
+        shell: pwsh
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add zellij zellij.portable
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m "Update Zellij to ${{ steps.update.outputs.version }}"
+            git push
+          }
+
+      - name: Push to Chocolatey
+        if: steps.update.outputs.changed == 'true' && (github.event_name == 'schedule' || inputs.push)
+        shell: pwsh
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+        run: |
+          if (-not $env:CHOCO_API_KEY) { throw 'CHOCO_API_KEY secret is not set' }
+          $v = '${{ steps.update.outputs.version }}'
+          # Dependency first, then the meta package.
+          foreach ($pkg in "zellij.portable.$v.nupkg", "zellij.$v.nupkg") {
+            choco push "out\$pkg" --source https://push.chocolatey.org/ --api-key $env:CHOCO_API_KEY
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - uses: actions/upload-artifact@v4
+        if: steps.update.outputs.changed == 'true'
+        with:
+          name: nupkgs-${{ steps.update.outputs.version }}
+          path: out/*.nupkg
